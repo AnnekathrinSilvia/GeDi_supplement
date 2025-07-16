@@ -6,7 +6,7 @@ author:
   affiliation: 
   - &id1 Institute of Medical Biostatistics, Epidemiology and Informatics (IMBEI), Mainz <br>
   email: anedwed@uni-mainz.de
-- name: Arsenij Ustanzew
+- name: Arsenij Ustjanzew
   affiliation: 
   - *id1
 - name: Sara Salome Helbich
