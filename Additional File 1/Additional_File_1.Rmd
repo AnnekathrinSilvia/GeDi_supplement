@@ -11,19 +11,20 @@ author:
   - *id1
 - name: Sara Salome Helbich
   affiliation:
+    - &id2 Institute of Immunology, University Medical Center Mainz, Mainz, Germany <br>
     - &id3 Research Center for Immunotherapy (FZI), Mainz, Germany <br>
-    - &id4 Institute of Immunology, University Medical Center Mainz, Mainz, Germany <br>
 - name: Michael Delacher
   affiliation:
+    - *id2
     - *id3
-    - *id4
 - name: Konstantin Strauch
   affiliation: 
   - *id1
 - name: Federico Marini
   affiliation: 
     - *id1
-    - &id2 Center for Thrombosis and Hemostasis (CTH), Mainz <br>
+    - *id3
+    - &id4 Center for Thrombosis and Hemostasis (CTH), Mainz <br>
   email: marinif@uni-mainz.de
 date: "`r BiocStyle::doc_date()`"
 package: "`r BiocStyle::pkg_ver('GeDi')`"
@@ -37,7 +38,7 @@ output:
 editor_options: 
   chunk_output_type: console
 link-citations: true
-bibliography: "gedi_supplement.bib"
+bibliography: "../gedi_supplement.bib"
 ---
 
 ```{r setup, include=FALSE, cache=FALSE, eval = TRUE, echo = FALSE}
