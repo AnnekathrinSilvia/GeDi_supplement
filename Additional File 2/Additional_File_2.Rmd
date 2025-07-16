@@ -89,7 +89,7 @@ library("visNetwork")
 
 Before we can use the data of the `macrophage` package in `GeDi`, we first have to preprocess and analyze the data. 
 
-For this, we first obtain the data from the package and generate a `DESeqDataset`. This step is also demonstrated and described in more detail in the package vignette of `GeDi`. The vignette is accessible through `browseVignette(GeDi)` after successfully installing the package. Similar to the the vignette, we will only use and compare the Interferon gamma (INFg) treated and the naive samples. This comparison and the resulting prepared data for `Gedi` also mirror the example data available in `GeDi`.
+For this, we first obtain the data from the package and generate a `DESeqDataset`. This step is also demonstrated and described in more detail in the package vignette of `GeDi`. The vignette is accessible through `browseVignette(GeDi)` after successfully installing the package. Similar to the the vignette, we will only use and compare the Interferon gamma (IFNg) treated and the naive samples. This comparison and the resulting prepared data for `Gedi` also mirror the example data available in `GeDi`.
 
 ```{r create_dds}
 # Obtain the data from the macrophage package
