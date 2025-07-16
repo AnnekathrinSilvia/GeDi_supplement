@@ -284,7 +284,7 @@ one named "Genesets" containing some form of geneset identifiers and one named
 "Genes" containing a list of genes belonging to the genesets. While this is not 
 strictly necessary to use `r BiocStyle::Biocpkg("GeDi")` on the data, it 
 facilitates the use of the app as the app can be used straight away instead of
-having to wait for the data to be reformated. The correct data format is however
+having to wait for the data to be reformatted. The correct data format is however
 necessary, if you want to use the data as a parameter as in `GeDi(topGO_tregs)`.
 
 Nevertheless, we want to show you here, how to adapt the data from the 
@@ -326,7 +326,7 @@ GeDi(genesets = tregs_example)
 ```
 
 Once the app is started, you can have interactive guidance of the user 
-interface and its features by usind the introductory tours of each panel of 
+interface and its features by using the introductory tours of each panel of 
 the app.
 
 ## Using `GeDi`'s functions in analysis reports 
