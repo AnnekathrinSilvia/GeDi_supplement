@@ -6,24 +6,25 @@ author:
   affiliation: 
   - &id1 Institute of Medical Biostatistics, Epidemiology and Informatics (IMBEI), Mainz <br>
   email: anedwed@uni-mainz.de
-- name: Arsenij Ustanzew
+- name: Arsenij Ustjanzew
   affiliation: 
   - *id1
 - name: Sara Salome Helbich
   affiliation:
+    - &id2 Institute of Immunology, University Medical Center Mainz, Mainz, Germany <br>
     - &id3 Research Center for Immunotherapy (FZI), Mainz, Germany <br>
-    - &id4 Institute of Immunology, University Medical Center Mainz, Mainz, Germany <br>
 - name: Michael Delacher
   affiliation:
+    - *id2
     - *id3
-    - *id4
 - name: Konstantin Strauch
   affiliation: 
   - *id1
 - name: Federico Marini
   affiliation: 
     - *id1
-    - &id2 Center for Thrombosis and Hemostasis (CTH), Mainz <br>
+    - *id3
+    - &id4 Center for Thrombosis and Hemostasis (CTH), Mainz <br>
   email: marinif@uni-mainz.de
 date: "`r BiocStyle::doc_date()`"
 package: "`r BiocStyle::pkg_ver('GeDi')`"
@@ -37,7 +38,7 @@ output:
 editor_options: 
   chunk_output_type: console
 link-citations: true
-bibliography: "gedi_supplement.bib"
+bibliography: "../gedi_supplement.bib"
 ---
 
 ```{r setup, include=FALSE, cache=FALSE, eval = TRUE, echo = FALSE}
@@ -284,7 +285,7 @@ one named "Genesets" containing some form of geneset identifiers and one named
 "Genes" containing a list of genes belonging to the genesets. While this is not 
 strictly necessary to use `r BiocStyle::Biocpkg("GeDi")` on the data, it 
 facilitates the use of the app as the app can be used straight away instead of
-having to wait for the data to be reformated. The correct data format is however
+having to wait for the data to be reformatted. The correct data format is however
 necessary, if you want to use the data as a parameter as in `GeDi(topGO_tregs)`.
 
 Nevertheless, we want to show you here, how to adapt the data from the 
@@ -326,7 +327,7 @@ GeDi(genesets = tregs_example)
 ```
 
 Once the app is started, you can have interactive guidance of the user 
-interface and its features by usind the introductory tours of each panel of 
+interface and its features by using the introductory tours of each panel of 
 the app.
 
 ## Using `GeDi`'s functions in analysis reports 
