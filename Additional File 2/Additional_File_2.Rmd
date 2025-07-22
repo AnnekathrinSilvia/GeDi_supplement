@@ -9,6 +9,15 @@ author:
 - name: Arsenij Ustjanzew
   affiliation: 
   - *id1
+- name: Najla Abassi
+  affiliation: 
+  - *id1
+- name: Leon Dammer
+  affiliation:
+  - *id1
+- name: Alicia Schulze
+  affiliation:
+  - *id1
 - name: Sara Salome Helbich
   affiliation:
     - &id2 Institute of Immunology, University Medical Center Mainz, Mainz, Germany <br>
@@ -80,9 +89,13 @@ library("GeneTonic")
 library("apeglm")
 library("dplyr")
 library("msigdbr")
-library("macrophage")
-library("org.Hs.eg.db")
 library("visNetwork")
+library("org.Hs.eg.db")
+library("GeDi")
+library("ggplot2")
+library("visNetwork")
+library("utils")
+library("ComplexHeatmap")
 ```
 
 # Data processing
@@ -200,7 +213,7 @@ After we have renamed the columns, the data is now ready to be used in `GeDi`.
 
 # Running `GeDi` on the dataset
 
-Now we can start to explore our data using `GeDi`. For this you can either follow the chunks in this document to prepare the data or we can load the prepared object provided with the repository of this document (https://github.com/AnnekathrinSilvia/GeDi_supplement).
+Now we can start to explore our data using `GeDi`. For this you can either follow the chunks in this document to prepare the data or we can load the prepared object provided with the repository of this document [Github](https://github.com/AnnekathrinSilvia/GeDi_supplement) .
 
 
 ```{r}
