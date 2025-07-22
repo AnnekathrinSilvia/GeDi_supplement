@@ -9,6 +9,15 @@ author:
 - name: Arsenij Ustjanzew
   affiliation: 
   - *id1
+- name: Najla Abassi
+  affiliation: 
+  - *id1
+- name: Leon Dammer
+  affiliation:
+  - *id1
+- name: Alicia Schulze
+  affiliation:
+  - *id1
 - name: Sara Salome Helbich
   affiliation:
     - &id2 Institute of Immunology, University Medical Center Mainz, Mainz, Germany <br>
@@ -82,6 +91,11 @@ library("dplyr")
 library("msigdbr")
 library("visNetwork")
 library("org.Mm.eg.db")
+library("GeDi")
+library("ggplot2")
+library("visNetwork")
+library("utils")
+library("ComplexHeatmap")
 ```
 
 # Data processing
@@ -90,7 +104,7 @@ In this example we analyse data available on the Gene Expression Omnibus under
 accession number [GSE130842](https://www.ncbi.xyz/geo/query/acc.cgi?acc=GSE130842).
 From the available data, we downloaded the 
 GSE130842_Count_table_Delacher_et_al_2019.xlsx Excel file, which is also 
-available in the [Github](https://github.com/AnnekathrinSilvia/manuscript_GeDi) 
+available in the [Github](https://github.com/AnnekathrinSilvia/GeDi_supplement) 
 repository to this document.
 
 We will preprocess the data for its use in `r BiocStyle::Biocpkg("Gedi")` 
@@ -102,7 +116,7 @@ In the first step of the preprocessing, we will generate a `DESeqDataset`
 [@Love2014] from the count table available in the Excel file. We will further
 preprocess this object, called `dds_tregs`, to prepare the data for its use in 
 `GeDi`. We will also read in some metadata that we have set up for the dataset.
-This file will also be available in the [repository](https://github.com/AnnekathrinSilvia/manuscript_GeDi) 
+This file will also be available in the [repository](https://github.com/AnnekathrinSilvia/GeDi_supplement) 
 as well as the final generated `dds_tregs`.
 
 ```{r create_dds}
@@ -136,21 +150,13 @@ dds_tregs
 ```
 
 Now we can see that we have set up a `DESeqDataset` object on all the available 
-samples. However, in this analysis, we will only focus on a subset of samples as
-shown in Figure 2 of the original manuscript [@Delacher2020]. Hence, we will 
+samples. However, in this analysis, we will only focus on a subset of samples. Hence, we will 
 subset our `dds_tregs` object to the groups used in the figure.
 
 ```{r subsetDDS}
 dds_tregs <- dds_tregs[, dds_tregs$group %in% 
                           c("KLRGminusNFIL3minusTreg" ,
-                            "KLRGminusNFIL3plusTreg",
-                            "KLRGplusNFIL3plusTreg",
-                            "tisTregST2_BM",
-                            "tisTregST2_Fat",
-                            "tisTregST2_Liver",
-                            "tisTregST2_Lung",
-                            "tisTregST2_Skin"
-                            )]
+                            "KLRGplusNFIL3plusTreg")]
 
 dds_tregs$group <- droplevels(dds_tregs$group)
 design(dds_tregs) <- ~group
@@ -211,8 +217,7 @@ dds_tregs <- DESeq(dds_tregs)
 ```
 
 After we performed the analysis, we extract the results for the condition 
-`KLRGplusNFIL3plusTreg vs KLRGminusNFIL3minusTreg` as we only want to compare 
-these two groups. Afterwards we print a summary overview of the previously
+`KLRGplusNFIL3plusTreg vs KLRGminusNFIL3minusTreg`. Afterwards we print a summary overview of the previously
 extracted results. 
 
 We also use the `r BiocStyle::Biocpkg("ideal")` package [@Marini2020] to plot an
@@ -312,7 +317,7 @@ After we have renamed the columns, the data is now ready to be used in
 Now we can start to explore our data using `r BiocStyle::Biocpkg("GeDi")`. For 
 this you can either follow the chunks in this document to prepare the data or 
 we can load the prepared object provided with the 
-[repository](https://github.com/AnnekathrinSilvia/manuscript_GeDi) of this 
+[repository](https://github.com/AnnekathrinSilvia/GeDi_supplement) of this 
 document.
 
 ```{r}
@@ -336,48 +341,175 @@ standalone functions, to be called for example in existing analysis reports
 in RMarkdown, or R scripts.  
 
 In the following chunks, we show how it is possible to call some of the functions
-on the dataset presented in this document.
+on the dataset presented in this document, for example to generate the contents of Figure 2 of the manuscript.
 
-```{r distance_Scores}
+For this we first prepare the data.
+
+```{r prepareData}
 # First we extract a representation of all genes in the data
 genes <- GeDi::prepareGenesetData(tregs_example)
+string_db <- getStringDB(species = getId("Mus musculus"))
+anno_df <- getAnnotation(string_db)
+ppi <- getPPI(genes = genes, 
+              stringdb = string_db,
+              anno_df = anno_df)
 
 # Then, we filter out large and generic genesets
 # For this we first plot a histogram of the size of the genesets
 GeDi::gsHistogram(genes, gs_names = tregs_example$Genesets, gs_description = tregs_example$Term)
 
 # Now we filter all genesets with a size of > 200 genes
+filter <- sapply(genes, function(x) length(x) >= 200)
 
-tregs_example_filtered <- tregs_example[tregs_example$Genes < 200, ]
+# Remove the filtered out, large gene sets from the 'genesets' data frame
+tregs_example_filtered <- tregs_example[!filter, ]
 
-# Next we calculate one distance score matrix for the data
-mm_score <- GeDi::getMeetMinMatrix(genesets = genes)
-rownames(mm_score) <- colnames(mm_score) <- tregs_example$Genesets
-
-# We can use several plotting functions of GeDi to plot the data
-GeDi::distanceHeatmap(mm_score)
-
-GeDi::distanceDendro(mm_score)
-
-GeDi::buildGraph(GeDi::getAdjacencyMatrix(mm_score, 0.3))
+# Prepare the filtered gene sets for further analysis by reapplying the data preparation function
+genes <- prepareGenesetData(tregs_example_filtered)
 ```
 
+Next, we can calculate the distance scores used in the manuscript.
+
+```{r distance_Scores, eval = F}
+# Next we calculate one distance score matrix for the data
+pmm_score <- GeDi::getpMMMatrix(genesets = genes,
+                                ppi = ppi,
+                                alpha = 0.5)
+rownames(pmm_score) <- colnames(pmm_score) <- tregs_example$Genesets
+
+go_score <- GeDi::goDistance(genesets = genes)
+
+# We can use several plotting functions of GeDi to plot the data
+GeDi::distanceHeatmap(pmm_score)
+
+GeDi::distanceDendro(pmm_score)
+
+GeDi::buildGraph(GeDi::getAdjacencyMatrix(pmm_score, 0.3))
+
+GeDi::distanceHeatmap(go_score)
+
+GeDi::distanceDendro(go_score)
+
+GeDi::buildGraph(GeDi::getAdjacencyMatrix(go_score, 0.3))
+```
+
+You can also read in the prepared and pre-calculated distance scores. The corresponding objects can be found in [repository](https://github.com/AnnekathrinSilvia/GeDi_supplement) of this report.
+
+```{r}
+pmm_score <- readRDS("pMM_Distances.RDS")
+go_score <- readRDS("GODistances.RDS")
+```
+
+With these scores, we can generate the heatmaps shown in Figure 2 of the manuscript using the code below.
+
+```{r}
+# We first draw the pMM matrix and extract the row order of the clustered heatmap. This row order will later be used to ensure a consistent row order betwenn the two heatmaps to enable an easier comparison of the two results.
+d <- distanceHeatmap(pmm_score, plot_labels = FALSE, title = "")
+ht <- draw(d)
+row_order <- row_order(ht)
+
+
+# Now we can plot both heatmaps with the same row order
+GeDi::distanceHeatmap(pmm_score[row_order, row_order],
+                      plot_labels = F,
+                      cluster_rows = F,
+                      cluster_columns = F,
+                      title = "Distance Scores")
+
+GeDi::distanceHeatmap(go_score[row_order, row_order],
+                      plot_labels = F,
+                      cluster_rows = F,
+                      cluster_columns = F,
+                      title = "Distance Scores")
+```
+
+
 After we have calculated distance scores, we can cluster the data and visualize 
-the results in several different ways. 
+the results in as shown in Figure 2 C-F. 
 
 ```{r clustering}
 # First we are clustering the data
-clustering <- GeDi::clustering(mm_score, threshold = 0.3, cluster_method = "markov")
+pmm_louvain <- clustering(pmm_score,
+                          threshold = 0.5,
+                          cluster_method = "louvain")
+
+pmm_fuzzy <- fuzzyClustering(seedFinding(pmm_score,
+                                         simThreshold = 0.5,
+                                         memThreshold = 0.5),
+                             threshold = 0.5)
+
+go_louvain <- clustering(go_score,
+                         threshold = 0.5,
+                         cluster_method = "louvain")
+
+go_fuzzy <- fuzzyClustering(seedFinding(go_score,
+                                        simThreshold = 0.5,
+                                        memThreshold = 0.5),
+                            threshold = 0.5)
 
 # Next we can visualize the results of the clustering
-GeDi::buildClusterGraph(clustering,
-                        genes, 
-                        topGO_tregs$Genesets)
+g_pmm_louvain <- buildClusterGraph(pmm_louvain,
+                                   genes,
+                                   tregs_example_filtered$Genesets,
+                                   color_by = "Cluster")
 
-GeDi::getBipartiteGraph(clustering, topGO_tregs$Genesets, genes = genes)
+visNetwork::visIgraph(g_pmm_louvain) %>% 
+  visNodes(color = list(border = "#545454")) %>%
+  visEdges(color = list(border = "#545454"), width = 10)
 
-GeDi::enrichmentWordcloud(topGO_tregs)
+g_pmm_fuzzy <- buildClusterGraph(pmm_fuzzy,
+                                 genes,
+                                 tregs_example_filtered$Genesets,
+                                 color_by = "Cluster")
+
+visNetwork::visIgraph(g_pmm_fuzzy) %>% 
+  visNodes(color = list(border = "#545454")) %>%
+  visEdges(color = list(border = "#545454"), width = 10)
+
+g_go_louvain <- buildClusterGraph(go_louvain,
+                                  genes,
+                                  tregs_example_filtered$Genesets,
+                                  color_by = "Cluster")
+
+visNetwork::visIgraph(g_go_louvain) %>% 
+  visNodes(color = list(border = "#545454")) %>%
+  visEdges(color = list(border = "#545454"), width = 10)
+
+g_go_fuzzy <- buildClusterGraph(go_fuzzy,
+                                genes,
+                                tregs_example_filtered$Genesets,
+                                color_by = "Cluster")
+
+visNetwork::visIgraph(g_go_fuzzy) %>% 
+  visNodes(color = list(border = "#545454")) %>%
+  visEdges(color = list(border = "#545454"), width = 10)
+
 ```
+
+We can also use the GeDi code to generate the wordclouds overlaid in Figure 2 E and F using the code below. For this, we first manually extracted the clusters belonging to the highlighted areas in E and F using an active GeDi session.
+
+```{r}
+# Wordcloud of Figure E
+
+# Extract a cluster that represent T cell-related gene sets.
+# The specific cluster indices were manually determined in a running `GeDi`
+largeCellCluster <- unique(unlist(pmm_fuzzy[c(100, 33, 89, 122, 70, 73, 16, 61, 15, 10, 36, 97, 102, 105, 3, 45, 26, 50, 114, 110, 88, 6, 72, 38, 97, 101, 111, 116, 9, 63, 114, 107, 117, 91, 57, 46, 51, 30, 92, 17, 86, 118, 78, 83, 11, 104, 49, 22, 18, 119, 107, 1, 4, 9, 18, 23, 30, 48, 90, 99, 102, 107, 109, 119, 121, 46, 52, 53, 103, 104, 75)]))
+
+# Generate a word cloud visualization for the T cell-related gene sets.
+enrichmentWordcloud(tregs_example_filtered[largeCellCluster, ])
+
+# Wordclouds in F
+# Left side
+tCellCluster <- unique(unlist(go_fuzzy[c(7, 8, 14, 17, 20, 24, 28, 30, 45, 49, 50, 58, 62, 64, 65, 70, 72, 76, 81, 85, 92, 96, 103, 105, 106, 112, 114, 121, 124)]))
+
+enrichmentWordcloud(tregs_example_filtered[tCellCluster, ])
+
+# Right side
+proteinMembraneCluster <- unique(unlist(go_fuzzy[c(5, 6, 21, 23, 35, 43, 52, 54, 57, 69, 73, 80, 88, 102, 126)]))
+
+enrichmentWordcloud(tregs_example_filtered[proteinMembraneCluster, ])
+```
+
 
 # Session information {-}
 
