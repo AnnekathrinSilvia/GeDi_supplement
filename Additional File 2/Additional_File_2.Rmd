@@ -82,7 +82,7 @@ We load the packages required to perform all the analytic steps presented in thi
 
 ```{r loadLibraries, results='hide'}
 library("DESeq2")
-library("topGO")
+library("clusterProfiler")
 library("pcaExplorer")
 library("ideal")
 library("GeneTonic")
@@ -180,35 +180,42 @@ geneUniverseExpr <- rowData(dds_macrophage)$SYMBOL[rowSums(counts(dds_macrophage
 # FDR is set to 0.05 to filter significant results
 de_symbols_IFNg_vs_naive <- deseqresult2df(res_macrophage_IFNg_vs_naive, FDR = 0.05)$SYMBOL
 
-# Perform Gene Ontology enrichment analysis using the topGOtable function from 
-# the "pcaExplorer" package
-topGO_IFNg_vs_naive <- topGOtable(
-  DEgenes = de_symbols_IFNg_vs_naive,
-  BGgenes = geneUniverseExpr,
-  ontology = "BP",
-  geneID = "symbol",
-  addGeneToTerms = TRUE,
-  mapping = "org.Hs.eg.db",
-  topTablerows = 500
-)
+# Perform Gene Ontology enrichment analysis using the enrichGO function from 
+# the "clusterProfiler" package
+clusterProfiler_IFNg_vs_naive <- enrichGO(
+      gene = de_symbols_IFNg_vs_naive,
+      universe      = geneUniverseExpr,
+      keyType       = "SYMBOL",
+      OrgDb         = org.Hs.eg.db,
+      ont           = "BP",
+      pAdjustMethod = "BH",
+      pvalueCutoff  = 0.01,
+      qvalueCutoff  = 0.05,
+      readable      = FALSE
+    )
 ```
 
 ## Preparing the data for GeDi
 
-After we have performed the functional enrichment analysis, the data is almost ready to be used with `GeDi`. However, in its current state the data is not yet in the correct format expected by `GeDi`. `GeDi` expects the data to have at least two columns, one named Genesets containing some form of geneset identifiers and one named Genes containing a list of genes belonging to the genesets. While this is not strictly necessary to use `GeDi` on the data, it facilitates the use of the app as the app can be used straight away instead of having to wait for the data to be reformatted. The correct data format is however necessary, if you want to use the data as a parameter as in `GeDi(topGO_IFNg_vs_naive)`.
+After we have performed the functional enrichment analysis, the data is almost ready to be used with `GeDi`. However, in its current state the data is not yet in the correct format expected by `GeDi`. `GeDi` expects the data to have at least two columns, one named Genesets containing some form of geneset identifiers and one named Genes containing a list of genes belonging to the genesets. While this is not strictly necessary to use `GeDi` on the data, it facilitates the use of the app as the app can be used straight away instead of having to wait for the data to be reformatted. The correct data format is however necessary, if you want to use the data as a parameter as in `GeDi(clusterProfiler_IFNg_vs_naive)`.
 
-Nevertheless, we want to show you here, how to adapt the data from the `topGO` analysis to fit the data format requirements of `GeDi`. For this we simply have to rename the 'GO.ID' and the 'genes' column of the results as these two columns already contain the input data in the correct format.
+For this, we have specifically implemented a function called `path_to_GeDi()` in the package. 
+This function can be used to transform the output of several different enrichment packages, such
+as `topGO`, `clusterProfiler`, `ReactomePA`, `enrichR` and `fgsea`, to fit the expected input in `GeDi`. Below you can see how to use the function.
 
-```{r renamecolumns, eval=TRUE}
-# Rename columns in the topGO_IFNg_vs_naive dataframe
-# Change the column name "GO.ID" to "Genesets"
-names(topGO_IFNg_vs_naive)[names(topGO_IFNg_vs_naive) == "GO.ID"] <- "Genesets"
+Additionally, as full dataset contains roughly 4600 gene sets, which is appropriate for real analyses but unnecessarily large for demonstration purposes, we truncated the data to the first 500 gene sets.
 
-# Change the column name "genes" to "Genes"
-names(topGO_IFNg_vs_naive)[names(topGO_IFNg_vs_naive) == "genes"] <- "Genes"
+
+```{r renamecolumns, eval=F}
+# We're preparing the data for GeDi using the 'path_to_GeDi' function from the package.
+
+macrophage_example <- path_to_GeDi(clusterProfiler_IFNg_vs_naive,
+                                   enrichment_package = "clusterProfiler")
+
+macrophage_example <- macrophage_example[1:500, ]
 ```
 
-After we have renamed the columns, the data is now ready to be used in `GeDi`.
+After we have preprocessed the data, the data is now ready to be used in `GeDi`.
 
 
 # Running `GeDi` on the dataset
