@@ -208,7 +208,7 @@ Additionally, as full dataset contains roughly 4600 gene sets, which is appropri
 
 ```{r renamecolumns, eval=F}
 # We're preparing the data for GeDi using the 'path_to_GeDi' function from the package.
-
+clusterProfiler_IFNg_vs_naive <- clusterProfiler_IFNg_vs_naive@result
 macrophage_example <- path_to_GeDi(clusterProfiler_IFNg_vs_naive,
                                    enrichment_package = "clusterProfiler")
 

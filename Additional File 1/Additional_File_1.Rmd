@@ -293,19 +293,14 @@ facilitates the use of the app as the app can be used straight away instead of
 having to wait for the data to be reformatted. The correct data format is however
 necessary, if you want to use the data as a parameter as in `GeDi(topGO_tregs)`.
 
-Nevertheless, we want to show you here, how to adapt the data from the 
-`r BiocStyle::Biocpkg("topGO")` analysis to fit the data format requirements 
-of `r BiocStyle::Biocpkg("GeDi")`. For this we simply have to rename the 
-'GO.ID' and the 'genes' column of the results as these two columns already 
-contain the input data in the correct format.
+For this, we have specifically implemented a function called `path_to_GeDi()` in the package. 
+This function can be used to transform the output of several different enrichment packages, such
+as `topGO`, `clusterProfiler`, `ReactomePA`, `enrichR` and `fgsea`, to fit the expected input in `GeDi`. Below you can see how to use the function.
 
 ```{r renamecolumns, eval=TRUE}
-# Rename columns in the topGO_tregs dataframe
-# Change the column name "GO.ID" to "Genesets"
-names(topGO_tregs)[names(topGO_tregs) == "GO.ID"] <- "Genesets"
-
-# Change the column name "genes" to "Genes"
-names(topGO_tregs)[names(topGO_tregs) == "genes"] <- "Genes"
+# We're preparing the data for GeDi using the 'path_to_GeDi' function from the package.
+macrophage_example <- path_to_GeDi(topGO_tregs,
+                                   enrichment_package = "topGO")
 ```
 
 After we have renamed the columns, the data is now ready to be used in 
